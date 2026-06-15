@@ -95,6 +95,30 @@ it falls back to mock.**
 That's it — the app now reads live data from Supabase. No UI changes needed. To force
 mock data again, unset the env vars (or edit `selectProvider()` in `lib/data/index.ts`).
 
+#### Loading data from Windsor.ai
+
+Windsor.ai exposes a unified field schema. Pull the **core fields** at daily grain:
+`source, date, campaign, adset_name, ad_name, impressions, clicks, spend, conversions, revenue`
+(optionally add breakdowns: `device, publisher_platform, ad_network_type, region, country,
+age, gender, keyword, search_term, frequency, landing_page_views` — note breakdowns return
+one row per combination).
+
+Use the included importer to load Windsor data straight into the `ad_performance` table:
+
+```bash
+# Set SUPABASE_SERVICE_ROLE_KEY and WINDSOR_API_KEY in .env.local first (see .env.example)
+
+# Pull a date range from the Windsor API:
+npm run import:windsor -- --from 2026-03-17 --to 2026-06-15
+
+# Or load a CSV exported from Windsor:
+npm run import:windsor -- --csv ./windsor-export.csv
+```
+
+The import is idempotent — it replaces the date range it loads, so re-running refreshes
+data without creating duplicates. Schedule it (cron / GitHub Action) to keep data fresh.
+See [`scripts/import-windsor.mjs`](scripts/import-windsor.mjs) for the field mapping.
+
 ### Option B — Windsor.ai → BigQuery
 
 Windsor.ai writes Facebook/Google Ads data into BigQuery tables. Fill in the queries in
