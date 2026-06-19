@@ -30,7 +30,10 @@ import { createClient } from '@supabase/supabase-js';
 // --- combination, which multiplies row counts. Start with the core set.
 const WINDSOR_FIELDS = [
   'source', 'date', 'campaign', 'adset_name', 'ad_name',
-  'impressions', 'clicks', 'spend', 'conversions', 'revenue',
+  'impressions', 'clicks', 'spend', 'revenue',
+  // Request all common conversion field names; the mapper picks the first non-null one.
+  'conversions', 'total_conversions', 'purchases', 'leads',
+  'complete_registration', 'all_conversions', 'goal_completions',
   // optional breakdowns (uncomment to include):
   // 'device', 'publisher_platform', 'ad_network_type', 'region', 'country',
   // 'age', 'gender', 'keyword', 'search_term', 'frequency', 'landing_page_views',
@@ -71,7 +74,15 @@ function mapRow(r) {
     impressions: Math.round(num(r.impressions)),
     clicks: Math.round(num(r.clicks)),
     spend: num(r.spend ?? r.cost ?? r.totalcost),
-    conversions: Math.round(num(r.conversions ?? r.total_conversions)),
+    conversions: Math.round(num(
+      r.conversions ??
+      r.total_conversions ??
+      r.purchases ??           // Facebook: Purchase event
+      r.leads ??               // Facebook / Google: Lead event
+      r.complete_registration ?? // Facebook: Registration
+      r.all_conversions ??     // Google Ads: all conversion actions
+      r.goal_completions       // Google (GA4-linked)
+    )),
     revenue: num(r.revenue ?? r.total_revenue ?? r.conversion_value),
     device: r.device ?? null,
     placement: r.publisher_platform ?? r.placement ?? r.ad_network_type ?? null,
