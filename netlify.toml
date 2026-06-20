@@ -6,3 +6,10 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Env vars prompted for when deploying via the "Deploy to Netlify" button.
+# (For a normal Git-connected deploy, set these under Site settings -> Environment
+# variables instead.)
+[template.environment]
+  NEXT_PUBLIC_SUPABASE_URL = "Your Supabase project URL (https://xxxx.supabase.co)"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY = "Your Supabase anon / publishable key"

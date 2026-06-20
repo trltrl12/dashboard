@@ -136,15 +136,29 @@ export const dataProvider = new BigQueryProvider();
 The repo includes [`netlify.toml`](netlify.toml) with the official
 `@netlify/plugin-nextjs` plugin, so deploys work with zero extra config.
 
-1. Push this repo to GitHub.
-2. In [Netlify](https://app.netlify.com): **Add new site → Import an existing project**.
-3. Connect GitHub and select this repository.
-4. Netlify auto-detects `netlify.toml` — click **Deploy**.
-5. **Add your env vars** in **Site settings → Environment variables**
-   (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) so production reads from
-   Supabase. Without them, the deployed site shows mock data.
+### One-click deploy
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/trltrl12/dashboard)
+
+Clicking this clones the repo into your Netlify account and **prompts you for the two
+Supabase env vars** (defined in `netlify.toml`). Sign in to Netlify once when asked.
+
+### Or connect the Git repo manually
+
+1. In [Netlify](https://app.netlify.com): **Add new site → Import an existing project**.
+2. Connect GitHub and select this repository (pick the branch you want to deploy).
+3. Netlify auto-detects `netlify.toml` — click **Deploy**.
+4. **Add your env vars** in **Site settings → Environment variables** so production reads
+   from Supabase (without them, the site falls back to mock data):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - *(optional)* `NEXT_PUBLIC_DATA_ANCHOR_DATE` — set to e.g. `2025-09-16` to anchor the
+     date presets onto historical data. Omit once you have current data.
 
 Every push to the connected branch then auto-deploys.
+
+> Only `NEXT_PUBLIC_*` vars belong in Netlify. Never put the Supabase **secret /
+> service_role** key here — it's only used locally by the import script.
 
 ---
 
