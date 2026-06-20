@@ -94,11 +94,21 @@ async function buildContext(from: string, to: string, channel: string): Promise<
   ).map(([r, c]) => `  ${r}: ${c}`).join('\n');
 
   // --- Inventory aggregates ---
+  // The inventory table uses quoted column names with spaces/capitals
+  // (e.g. "Property Status", "Expected Profit"), so access them by exact key.
+  const invStatus = (r: InvRow) => String(r['Property Status'] ?? 'Unknown');
+  const invProfit = (r: InvRow) => n(r['Expected Profit']);
+  const invSales  = (r: InvRow) => n(r['Sales Price']);
   const invSummary = invRows.length === 0
     ? '  (no inventory rows loaded yet)'
     : `Total inventory records: ${invRows.length}\n` +
-      groupCount(invRows, r => String((r as Record<string,unknown>).status ?? 'Unknown'))
-        .map(([s, c]) => `  ${s}: ${c}`).join('\n');
+      'By status:\n' +
+      groupCount(invRows, invStatus).map(([s, c]) => `  ${s}: ${c}`).join('\n') +
+      `\nTotal expected profit (inventory): $${sumBy(invRows, invProfit).toFixed(0)}` +
+      `\nTotal sales price (sold): $${sumBy(invRows, invSales).toFixed(0)}` +
+      `\nBy city:\n` +
+      groupCount(invRows, r => String(r['Property City'] ?? 'Unknown'))
+        .slice(0, 8).map(([s, c]) => `  ${s}: ${c}`).join('\n');
 
   // --- Data quality ---
   const leadsNoCampaign  = count(leadRows, r => !r.campaign_name);
@@ -106,6 +116,10 @@ async function buildContext(from: string, to: string, channel: string): Promise<
   const leadCampaigns    = new Set(leadRows.map(r => String(r.campaign_name)).filter(Boolean));
   const orphanCampaigns  = [...leadCampaigns].filter(c => !adCampaigns.has(c));
   const noLeadCampaigns  = [...adCampaigns].filter(c => !leadCampaigns.has(c));
+
+  // Inventory <-> leads linkage via Property ID.
+  const leadPropertyIds = new Set(leadRows.map(r => String(r.property_id)).filter(Boolean));
+  const invLinkedToLead = count(invRows, r => leadPropertyIds.has(String(r['Property ID'])));
 
   return `
 === AD PERFORMANCE (${from} to ${to}) ===
@@ -152,6 +166,7 @@ ${invSummary}
 - Leads with no campaign_name: ${leadsNoCampaign}
 - Lead campaigns not in ad_performance: ${orphanCampaigns.slice(0, 5).join(', ') || 'none'}
 - Ad campaigns with no matching leads: ${noLeadCampaigns.slice(0, 5).join(', ') || 'none'}
+- Inventory records linked to a lead (by Property ID): ${invLinkedToLead} of ${invRows.length}
 `.trim();
 }
 
