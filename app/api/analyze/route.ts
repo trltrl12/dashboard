@@ -63,25 +63,35 @@ async function buildContext(from: string, to: string, channel: string): Promise<
     .map(([c, s]) => `  ${c}: $${s.toFixed(0)}`).join('\n');
 
   // --- Lead aggregates ---
+  // The leads table uses column names WITH SPACES AND CAPITALS
+  // (e.g. "Lead Status", "Campaign Name", "Expected Profit"), so access them by exact key.
+  const leadStatus   = (r: LeadRow) => String(r['Lead Status'] ?? '');
+  const leadSource   = (r: LeadRow) => String(r['Lead Source'] ?? '');
+  const leadCampaign = (r: LeadRow) => String(r['Campaign Name'] ?? '');
+  const leadOffer    = (r: LeadRow) => n(r['Offer Price']);
+  const leadProfit   = (r: LeadRow) => n(r['Expected Profit']);
+  const leadDeadReason = (r: LeadRow) => String(r['Dead Lead Reason'] ?? 'No reason given');
+  const leadPropId   = (r: LeadRow) => String(r['Property ID'] ?? '');
+
   const totalLeads = leadRows.length;
-  const byStatus = groupCount(leadRows, r => String(r.lead_status ?? ''));
-  const bySource = groupCount(leadRows, r => String(r.lead_source ?? ''));
-  const byCampaign = groupCount(leadRows, r => String(r.campaign_name ?? ''));
+  const byStatus = groupCount(leadRows, leadStatus);
+  const bySource = groupCount(leadRows, leadSource);
+  const byCampaign = groupCount(leadRows, leadCampaign);
 
   const closedLeads = leadRows.filter(r =>
-    /closed|contract|assign/i.test(String(r.lead_status ?? ''))
+    /closed|contract|assign/i.test(leadStatus(r))
   );
   const avgOffer = closedLeads.length
-    ? sumBy(closedLeads, r => n(r.offer_price)) / closedLeads.length : 0;
+    ? sumBy(closedLeads, leadOffer) / closedLeads.length : 0;
   const avgProfit = closedLeads.length
-    ? sumBy(closedLeads, r => n(r.expected_profit)) / closedLeads.length : 0;
-  const totalProfit = sumBy(leadRows, r => n(r.expected_profit));
+    ? sumBy(closedLeads, leadProfit) / closedLeads.length : 0;
+  const totalProfit = sumBy(leadRows, leadProfit);
 
-  // top campaigns by expected_profit
+  // top campaigns by expected profit
   const profitByCampaign: Record<string, number> = {};
   for (const r of leadRows) {
-    const c = String(r.campaign_name ?? '(none)');
-    profitByCampaign[c] = (profitByCampaign[c] || 0) + n(r.expected_profit);
+    const c = leadCampaign(r) || '(none)';
+    profitByCampaign[c] = (profitByCampaign[c] || 0) + leadProfit(r);
   }
   const topByProfit = Object.entries(profitByCampaign)
     .sort((a, b) => b[1] - a[1]).slice(0, 5)
@@ -89,8 +99,8 @@ async function buildContext(from: string, to: string, channel: string): Promise<
 
   // dead lead reasons
   const deadReasons = groupCount(
-    leadRows.filter(r => /dead/i.test(String(r.lead_status ?? ''))),
-    r => String(r.dead_lead_reason ?? 'No reason given')
+    leadRows.filter(r => /dead/i.test(leadStatus(r))),
+    leadDeadReason
   ).map(([r, c]) => `  ${r}: ${c}`).join('\n');
 
   // --- Inventory aggregates ---
@@ -111,14 +121,14 @@ async function buildContext(from: string, to: string, channel: string): Promise<
         .slice(0, 8).map(([s, c]) => `  ${s}: ${c}`).join('\n');
 
   // --- Data quality ---
-  const leadsNoCampaign  = count(leadRows, r => !r.campaign_name);
+  const leadsNoCampaign  = count(leadRows, r => !leadCampaign(r));
   const adCampaigns      = new Set(adRows.map(r => String(r.campaign)));
-  const leadCampaigns    = new Set(leadRows.map(r => String(r.campaign_name)).filter(Boolean));
+  const leadCampaigns    = new Set(leadRows.map(leadCampaign).filter(Boolean));
   const orphanCampaigns  = [...leadCampaigns].filter(c => !adCampaigns.has(c));
   const noLeadCampaigns  = [...adCampaigns].filter(c => !leadCampaigns.has(c));
 
   // Inventory <-> leads linkage via Property ID.
-  const leadPropertyIds = new Set(leadRows.map(r => String(r.property_id)).filter(Boolean));
+  const leadPropertyIds = new Set(leadRows.map(leadPropId).filter(Boolean));
   const invLinkedToLead = count(invRows, r => leadPropertyIds.has(String(r['Property ID'])));
 
   return `
