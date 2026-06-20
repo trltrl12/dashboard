@@ -14,6 +14,7 @@ import { BudgetPacing } from '@/components/sections/BudgetPacing';
 import { KeywordPerformance } from '@/components/sections/KeywordPerformance';
 import { GoalsTargets } from '@/components/sections/GoalsTargets';
 import { CommentsSection } from '@/components/sections/CommentsSection';
+import { AiAnalysis } from '@/components/sections/AiAnalysis';
 import { useFilter } from '@/lib/hooks/useFilter';
 
 export default function DashboardPage() {
@@ -80,6 +81,11 @@ export default function DashboardPage() {
         <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <GeoPerformance filter={filter} />
           <KeywordPerformance filter={filter} />
+        </section>
+
+        {/* AI Analysis */}
+        <section>
+          <AiAnalysis filter={filter} />
         </section>
 
         {/* Analyst comments / notes */}

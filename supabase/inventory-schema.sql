@@ -1,0 +1,28 @@
+-- Inventory / properties table.
+-- Paste the column names from your Supabase table into this file once you share them,
+-- or run `select column_name, data_type from information_schema.columns where table_name = 'inventory'`
+-- in the SQL editor to get the list.
+--
+-- The AI analysis route already queries this table and includes it in Claude's context.
+-- Once rows are loaded, Claude will cross-reference: ad spend -> leads -> inventory.
+
+-- TODO: replace this placeholder with your actual schema.
+-- Minimum expected columns (adjust types to match your real table):
+--
+-- create table if not exists public.inventory (
+--   id                 bigint generated always as identity primary key,
+--   property_id        text,          -- links to leads.property_id
+--   address            text,
+--   city               text,
+--   state              text,
+--   status             text,          -- e.g. Active, Pending, Sold
+--   list_price         numeric(14,2),
+--   purchase_price     numeric(14,2),
+--   expected_profit    numeric(14,2),
+--   acquired_date      date,
+--   sold_date          date,
+--   ...
+-- );
+--
+-- alter table public.inventory enable row level security;
+-- create policy "Public read" on public.inventory for select using (true);
