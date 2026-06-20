@@ -13,10 +13,11 @@ import { TimeHeatmap } from '@/components/sections/TimeHeatmap';
 import { BudgetPacing } from '@/components/sections/BudgetPacing';
 import { KeywordPerformance } from '@/components/sections/KeywordPerformance';
 import { GoalsTargets } from '@/components/sections/GoalsTargets';
+import { CommentsSection } from '@/components/sections/CommentsSection';
 import { useFilter } from '@/lib/hooks/useFilter';
 
 export default function DashboardPage() {
-  const { filter, preset, channel, compareTo, setPreset, setChannel, setCompareTo } = useFilter();
+  const { filter, preset, channel, compareTo, customRange, setPreset, setChannel, setCompareTo, setCustomRange } = useFilter();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -24,9 +25,11 @@ export default function DashboardPage() {
         preset={preset}
         channel={channel}
         compareTo={compareTo}
+        customRange={customRange}
         onPreset={setPreset}
         onChannel={setChannel}
         onCompareTo={setCompareTo}
+        onCustomRange={setCustomRange}
       />
 
       <main className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -77,6 +80,11 @@ export default function DashboardPage() {
         <section className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <GeoPerformance filter={filter} />
           <KeywordPerformance filter={filter} />
+        </section>
+
+        {/* Analyst comments / notes */}
+        <section>
+          <CommentsSection />
         </section>
       </main>
     </div>

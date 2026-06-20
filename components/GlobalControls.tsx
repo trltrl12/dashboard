@@ -2,15 +2,20 @@
 import { RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { brand } from '@/config/brand';
+import { DateRangePicker } from '@/components/ui/DateRangePicker';
 
 interface GlobalControlsProps {
   preset: string;
   channel: 'all' | 'facebook' | 'google';
   compareTo: 'previous_period' | 'previous_year';
+  customRange: { from: string; to: string } | null;
   onPreset: (p: string) => void;
   onChannel: (c: 'all' | 'facebook' | 'google') => void;
   onCompareTo: (c: 'previous_period' | 'previous_year') => void;
+  onCustomRange: (range: { from: string; to: string } | null) => void;
 }
+
+const usingSupabase = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 const DATE_PRESETS = [
   { value: '7d', label: '7D' },
@@ -30,9 +35,11 @@ export function GlobalControls({
   preset,
   channel,
   compareTo,
+  customRange,
   onPreset,
   onChannel,
   onCompareTo,
+  onCustomRange,
 }: GlobalControlsProps) {
   return (
     <div className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200 px-6 py-3">
@@ -60,7 +67,7 @@ export function GlobalControls({
                 onClick={() => onPreset(p.value)}
                 className={cn(
                   'px-3 py-1.5 text-xs font-medium rounded-md transition-all',
-                  preset === p.value
+                  !customRange && preset === p.value
                     ? 'bg-white text-slate-900 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700'
                 )}
@@ -69,6 +76,13 @@ export function GlobalControls({
               </button>
             ))}
           </div>
+
+          {/* Custom date range */}
+          <DateRangePicker
+            customRange={customRange}
+            onApply={(r) => onCustomRange(r)}
+            onClear={() => onCustomRange(null)}
+          />
 
           {/* Channel filter */}
           <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-lg">
@@ -117,7 +131,7 @@ export function GlobalControls({
           {/* Sync indicator */}
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Mock data</span>
+            <span>{usingSupabase ? 'Last synced • Windsor' : 'Mock data'}</span>
           </div>
         </div>
       </div>

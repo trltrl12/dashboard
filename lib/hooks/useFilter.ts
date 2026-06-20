@@ -52,5 +52,5 @@ export function useFilter() {
     setCustomRange(null);
   }, []);
 
-  return { filter, preset, channel, compareTo, setPreset: setPresetAndClear, setChannel, setCompareTo, setCustomRange };
+  return { filter, preset, channel, compareTo, customRange, setPreset: setPresetAndClear, setChannel, setCompareTo, setCustomRange };
 }
