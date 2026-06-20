@@ -3,7 +3,10 @@ import { useState, useCallback } from 'react';
 import { DateFilter } from '@/lib/data/types';
 
 function getDateRange(preset: string): { from: string; to: string } {
-  const today = new Date();
+  // Optional override: anchor presets to a fixed date (useful when viewing historical
+  // data). Unset in production -> presets are relative to the real "today".
+  const anchor = process.env.NEXT_PUBLIC_DATA_ANCHOR_DATE;
+  const today = anchor ? new Date(anchor) : new Date();
   const to = today.toISOString().split('T')[0];
 
   const daysAgo = (n: number) => {
